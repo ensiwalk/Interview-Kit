@@ -4,7 +4,11 @@
 ### 1. Batch Normalization
 
 #### 基本公式
-
+<img src="http://chart.googleapis.com/chart?cht=tx&chl= $$\mu = \frac{1}{m}\Sigma_{i=1}^mx_i\\
+\sigma^2 = \frac{\Sigma_{i=1}^m(x_i-\mu)^2}{m}\\
+\hat{x}_i = \frac{x_i-\mu}{\sqrt{\sigma^2+\epsilon}}\\
+y_i = \gamma\hat{x}_i+\beta
+$$" style="border:none;">
 $$
 \mu = \frac{1}{m}\Sigma_{i=1}^mx_i\\
 \sigma^2 = \frac{\Sigma_{i=1}^m(x_i-\mu)^2}{m}\\
