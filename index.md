@@ -92,9 +92,10 @@ param:bn_param   : batchnorm所需要的一些参数
 * 梯度剪切，防止梯度爆炸
 * 换损失函数，用relu及其变体
 * BN
+
 $$
 f_2= f_1(w^Tx+b)\\
-\frac{\part f_2}{\part w} = \frac{\part f_2}{\part f_1}x
+\frac{d f_2}{d w} = \frac{d f_2}{d f_1}x
 $$
 
 可以看到，求梯度的时候有一项与输入\\(x\\) 有关，而BN消除了\\(x\\) 缩放带来的影响
