@@ -14,7 +14,7 @@ $$\mu = \frac{1}{m}\Sigma_{i=1}^mx_i\\
 y_i = \gamma\hat{x}_i + \beta
 $$
 
-$\epsilon$ 是为了防止方差为0，$\gamma$ 和 $\beta$ 是可学习参数，为了使BN后的数据仍保留一定的原有特征，因为二者选择的比较好，可以使处理后的数据回归原始数据。
+\\(\epsilon\\) 是为了防止方差为0，\\(\gamma\\)  和  \\(\beta\\)是可学习参数，为了使BN后的数据仍保留一定的原有特征，因为二者选择的比较好，可以使处理后的数据回归原始数据。
 
 ```python
 def Batchnorm_simple_for_train(x, gamma, beta, bn_param):
