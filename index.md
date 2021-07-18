@@ -1,4 +1,5 @@
 <head>
+</script>
     <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
     <script type="text/x-mathjax-config">
         MathJax.Hub.Config({
@@ -14,11 +15,12 @@
 ### 1. Batch Normalization
 
 #### 基本公式
-$$\mu = \frac{1}{m}\Sigma_{i=1}^mx_i\\
+$\mu = \frac{1}{m}\Sigma_{i=1}^mx_i\\
 \sigma^2 = \frac{\Sigma_{i=1}^m(x_i-\mu)^2}{m}\\
 \hat{x}_i = \frac{x_i-\mu}{\sqrt{\sigma^2 \+ \epsilon}}\\
 y_i = \gamma\hat{x}_i \+ \beta
-$$
+$
+
 $\epsilon$ 是为了防止方差为0，$\gamma$ 和 $\beta$ 是可学习参数，为了使BN后的数据仍保留一定的原有特征，因为二者选择的比较好，可以使处理后的数据回归原始数据。
 
 ```python
