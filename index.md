@@ -132,3 +132,5 @@ $$
 | 真实1 | TP                           | TN                           | TP+FN （Actual Positive） |
 | 真实0 | FP                           | FN                           | FP+TN （Actual Negative） |
 | 合计  | TF+FP （Predicted Positive） | FN+TN （Predicted Negative） |                           | 
+
+### 7. 逻辑回归推导及其正向反向传播
