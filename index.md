@@ -162,7 +162,7 @@ $$
 
 * 连续型总体的似然函数
 
-设$X \sim f(x;\theta)$，$\theta$ 为待估参数，则上述样本的联合概率密度为
+设\\(X \sim f(x;\theta)\\)，\\(\theta\\) 为待估参数，则上述样本的联合概率密度为
 
 $$
 L(\theta) = L(x_1,\cdots,x_n;\theta) = \Pi_{i=1}^nf(x_i;\theta)
