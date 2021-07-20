@@ -184,7 +184,7 @@ $$
 p = \frac{1}{1+e^{-\mathbf{w}^T\mathbf{x}}}
 $$
 
-之所以这么选取是因为sigmoid函数的取值为$(0,1)$,则似然函数为
+之所以这么选取是因为sigmoid函数的取值为\\((0,1)\\),则似然函数为
 
 $$
 L(\mathbf{w}) = \Pi_{i=1}^n(\frac{1}{1+e^{-\mathbf{w}^T\mathbf{x}}})^{y_i}(1-\frac{1}{1+e^{-\mathbf{w}^T\mathbf{x}}})^{1-y_i}\\
