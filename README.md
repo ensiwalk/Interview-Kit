@@ -131,3 +131,72 @@ $$
 | 真实0 | FP                           | FN                           | FP+TN （Actual Negative） |
 | 合计  | TF+FP （Predicted Positive） | FN+TN （Predicted Negative） |                           |
 
+### 7. LR推导
+
+#### 最大似然估计
+
+最大似然估计的基本思想：拥有一组数据的样本观测值，并且已知其含参数概率分布的形式，选取合适的参数估计值，使得样本取到样本值的概率最大。
+
+* 样本
+
+设$(X_1,X_2,\cdots,X_n)$是来自总体的一个容量为n的样本，$(x_1,x_2,\cdots,x_n)$ 是相应的样本值。
+
+* 离散型总体的似然函数
+
+设分布律为$P(X=x) = p(x;\theta),\theta \in \Theta$的形式已知，$\theta$为待估参数，则样本的观察值为$(x_1,x_2,\cdots,x_n)$ 的概率为
+$$
+P(X_1=x_1,X_2=x_2,\cdots,X_n=x_n) = \Pi_{i=1}^nP(X_i=x_i)
+$$
+似然函数为
+$$
+L(\theta) = \Pi_{i=1}^np(x_i;\theta)
+$$
+对数似然函数为
+$$
+lnL(\theta) = \Sigma_{i=1}^nlnp(x_i;\theta)
+$$
+
+* 连续型总体的似然函数
+
+设$Y \sim f(x;\theta)$​，$\theta$​ 为待估参数，则上述样本的联合概率密度为
+$$
+L(\theta) = L(x_1,\cdots,x_n;\theta) = \Pi_{i=1}^nf(x_i;\theta)
+$$
+因为样本在样本点附近取值为大概率事件，所以要最大化上述似然函数
+
+对数似然函数为
+$$
+lnL(\theta) = \Sigma_{i=1}^nf(x_i;\theta)
+$$
+
+#### 逻辑回归原理
+
+对于一个二分类问题，我们假设样本服从一个伯努利分布，即$X\sim B(1,p)$，现在有样本$(\mathbf{x_i},y_i)$，其中，$y_i$ 是类别，只有两种取值，即0和1，我们假设概率$p$ 与样本点的关系如下：
+$$
+p = \frac{1}{1+e^{-\mathbf{w}^T\mathbf{x}}}
+$$
+之所以这么选取是因为sigmoid函数的取值为$(0,1)$,则似然函数为
+$$
+L(\mathbf{w}) = \Pi_{i=1}^n(\frac{1}{1+e^{-\mathbf{w}^T\mathbf{x}}})^{y_i}(1-\frac{1}{1+e^{-\mathbf{w}^T\mathbf{x}}})^{1-y_i}\\
+=\Pi_{i=1}^n(\frac{1}{1+e^{-\mathbf{w}^T\mathbf{x}}})^{y_i}(\frac{e^{-\mathbf{w}^T\mathbf{x}}}{1+e^{-\mathbf{w}^T\mathbf{x}}})^{1-y_i}
+$$
+为了方便，对上述式子取对数
+$$
+lnL(\mathbf{w}) = \Sigma_{i=1}^n-y_i*ln(1+e^{-\mathbf{w}^T\mathbf{x}})+(1-y_i)*(-\mathbf{w}^T\mathbf{x}-ln(1+e^{-\mathbf{w}^T\mathbf{x}}))
+$$
+因为梯度下降需要损失函数减小，所以可以对上述似然函数取负作为损失函数
+$$
+Loss = -lnL(\mathbf{w}) =\Sigma_{i=1}^ny_i*ln(1+e^{-\mathbf{w}^T\mathbf{x}})+(1-y_i)*(\mathbf{w}^T\mathbf{x}+ln(1+e^{-\mathbf{w}^T\mathbf{x}}))=(1-y_i)*\mathbf{w}^T\mathbf{x}+ln(1+e^{-\mathbf{w}^T\mathbf{x}}))
+$$
+求梯度
+$$
+\frac{dLoss}{d\mathbf{w}} = \Sigma_{i=1}^n(1-y_i)*\mathbf{x}+\frac{-e^{-\mathbf{w}^T\mathbf{x}}}{1+e^{-\mathbf{w}^T\mathbf{x}}}*\mathbf{x} = \Sigma_{i=1}^n(\frac{1}{1+e^{-\mathbf{w}^T\mathbf{x}}}-y_i)*\mathbf{x}
+$$
+运用梯度下降
+$$
+w_{t+1} = w_{t} - \eta*\Sigma_{i=1}^n(\frac{1}{1+e^{-\mathbf{w}^T\mathbf{x}}}-y_i)*\mathbf{x}
+$$
+运用随机梯度下降
+$$
+w_{t+1} = w_{t} - \eta*(\frac{1}{1+e^{-\mathbf{w}^T\mathbf{x}}}-y_i)*\mathbf{x}
+$$
