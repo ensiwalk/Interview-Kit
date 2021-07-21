@@ -159,7 +159,7 @@ $$
 设\\(X \sim f(x;\theta)\\)，\\(\theta\\) 为待估参数，则上述样本的联合概率密度为
 
 $$
-L(\theta) = L(x_1,\cdots,x_n;\theta) = \Pi_{i=1}^nf(x_i;\theta)
+L(\theta) = L(x_1,\cdots,x_n;\theta) = \Pi_{i=1}^n lnf(x_i;\theta)
 $$
 
 因为样本在样本点附近取值为大概率事件，所以要最大化上述似然函数
