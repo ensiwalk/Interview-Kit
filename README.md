@@ -123,7 +123,7 @@ $$
 * 欠采样，去除一些多数样本
 * 数据增强，增加少数样本，mix-up，旋转，反向，加噪，相位等等
 
-                     
+  ​                   
 
 ### 6. LR推导
 
@@ -311,9 +311,13 @@ ROC曲线上的最优临界点，让Recall尽量高的情况下，不显著增�
 
 ### 8.多分类问题的解决模式
 
+
+
+
+
 ### 9. SVM的推导
 
-#### 凸优化角度理解SVM的过程
+#### 线性可分支持向量机
 
 对于一批训练数据$\Tau = \{(\mathbf{x}_i,y_i)\}_{i=1}^N$​​ ​，其中$y_i = 1(positive);y_i=-1(negative)$， 现在想要找到一个最优的决策面，$\mathbf{w}^T\mathbf{x}+b=0$,使得
 $$
@@ -322,16 +326,132 @@ $$
 \mathbf{w}^T\mathbf{x_i}+b<0 ,\ for \ y_i=-1\\
 \end{aligned}
 $$
- 如何利用已有的数据，得到最优的$\mathbf{w}$和$b$ 就是SVM的核心思想
+ 如何利用已有的数据，得到最优的$\mathbf{w}$和$b$ 就是SVM的核心思想，定义如下的优化问题：
+$$
+\begin{aligned}
+\max &\frac{2}{\|\mathbf{w}\|_2^2}\\
+s.t. &\mathbf{w}^T\mathbf{x}_j+b\geq1,\ y_j = 1\\
+&\mathbf{w}^T\mathbf{x}_k+b\leq-1,\ y_k=-1
+\end{aligned}
+$$
+这样是把点到直线的距离转化成了直线与直线的距离，最优的决策面仍然为$\mathbf{w}^T\mathbf{x}+b=0$​，构造两条平行线作为“支撑向量”的边界，两条平行线之间的距离叫做间隔，上述问题等价于
+$$
+\begin{aligned}
+\min\  &\frac{1}{2}\|\mathbf{w}\|_2^2\\
+s.t.\  &y_i(\mathbf{w}^T\mathbf{x}_i+b)\geq1 \ ,i=1,\cdots,N
+\end{aligned}
+$$
+该问题是一个凸二次规划问题，可以直接求解，且具有唯一解，但是为了进一步分析，我们求它的对偶问题，该问题的拉格朗日函数为
+$$
+L(\boldsymbol{\alpha},b,\mathbf{w}) =\frac{1}{2}\|\mathbf{w}\|_2^2 + \Sigma_{i=1}^{N}\alpha_i(1-y_i(\mathbf{w}^T\mathbf{x}_i+b))
+$$
+为了求解拉格朗日函数的下确界，对$\mathbf{w},b$​​​ 求偏导等于0，得到
+$$
+\mathbf{w} = \Sigma_{i=1}^N\alpha_iy_i\mathbf{x}_i,\Sigma_{i=1}^N\alpha_iy_i=0
+$$
+代入原式，得到对偶问题
+$$
+\begin{aligned}
+\max \inf \ L(\boldsymbol{\alpha},b,\mathbf{w}) & = \max -\frac{1}{2}\Sigma_{i=1}^{N}\Sigma_{j=1}^N\alpha_i\alpha_jy_iy_j\mathbf{x_i}^T\mathbf{x}_j + \Sigma_{i=1}^N\alpha_i\\
+&= \min\  \frac{1}{2}\Sigma_{i=1}^{N}\Sigma_{j=1}^N\alpha_i\alpha_jy_iy_j\mathbf{x_i}^T\mathbf{x}_j -\Sigma_{i=1}^N\alpha_i\\\
+s.t. \ &\Sigma_{i=1}^N\alpha_iy_i = 0,\\ 
+&\alpha_i\geq0,i=1,\cdots,N
+\end{aligned}
+$$
 
+##### 支持向量
 
+对于线性可分的情况，支持向量有两种定义：
 
-#### 核函数
+* 训练样本中与分离超平面距离最近的样本点的实例
+* 训练样本中对应$\alpha^*_i>0$的点
+
+由凸优化KKT中的互补松弛条件，二者等价。
+
+#### 线性支持向量机
+
+对于一个问题，大部分样本点满足线性可分，少部分点不满足线性可分，我们采用软间隔方法，也称作线性支持向量机，定义优化问题如下：
+$$
+\begin{aligned}
+\min\  &\frac{1}{2}\|\mathbf{w}\|_2^2 + C\Sigma_{i=1}^N\xi_i\\
+s.t.\  &y_i(\mathbf{w}^T\mathbf{x}_i+b)\geq1-\xi_i \ ,i=1,\cdots,N\\
+&\xi_i\geq0,i=1,\cdots,N
+\end{aligned}
+$$
+其中，$C$为超参数，代表对误分类的惩罚，可以证明，上述问题为凸二次规划问题，有最优解，其中$\mathbf{w}$ 是唯一的，$b$ 是一个区间。
+
+上述问题的对偶问题为
+$$
+\begin{aligned}
+\min\ & \frac{1}{2}\Sigma_{i=1}^{N}\Sigma_{j=1}^N\alpha_i\alpha_jy_iy_j\mathbf{x_i}^T\mathbf{x}_j -\Sigma_{i=1}^N\alpha_i\\\
+s.t. \ &\Sigma_{i=1}^N\alpha_iy_i = 0,\\ 
+&0 \leq \alpha_i \leq C,i=1,\cdots,N
+\end{aligned}
+$$
+线性支持向量机的支持向量指的是所有在间隔边界上以及其上方的点，对应对偶问题中$\alpha^*_i>0$ 的点：
+
+* $\alpha_i<C,\xi_i=0$,落在了间隔边界上
+* $\alpha_i=C,0<\xi<1$,落在间隔边界和分类边界之间
+* $\alpha_i=C,\xi=1$​, 落在了分类边界上
+* $\alpha_i=C,\xi>1$，落在了分类错误的那边
+
+#### 非线性支持向量机
+
+对于非线性问题，先利用一个非线性变换将输入空间对应到一个特征空间，使得输入空间的超曲面模型在特征空间中变成超平面模型，然后使用线性支持向量机求解。
+
+##### 核函数
+
+设一个输入空间到特征空间的映射为$\Phi(x)：\mathcal{X}->\mathcal{H}$​​​,对任意的$x,z \in \mathcal{X}$，函数$K(x,z)=\Phi(x)\Phi(z)$，则$K(x,z)$称为核函数，$\Phi(x)$​称为映射函数。由于映射函数比较难以获得求解，在这里主要使用核函数，而核函数的选择较为简单，只要一个定义在$\mathcal{X}\times\mathcal{X}$上的对称函数满足核矩阵半正定即可，核矩阵定义为任意数据输入到对称函数的互相关矩阵。常用的核函数有：
 
 * 线性核
+
+$$
+K( \mathbf{x},\mathbf{z}) = \mathbf{x}^T\mathbf{z}
+$$
+
 * 多项式核
+
+$$
+K( \mathbf{x},\mathbf{z})  = ( \mathbf{x}^T\mathbf{z}+1)^p
+$$
+
+
+
 * 高斯核（最常用）
+
+$$
+K( \mathbf{x},\mathbf{z})  = exp(-\frac{\| \mathbf{x}- \mathbf{z}\|^2}{2\sigma^2})
+$$
+
+
+
 * sigmoid核
+
+$$
+K( \mathbf{x},\mathbf{z})  = tanh(\beta  \mathbf{x}^T\mathbf{z}+\theta)
+$$
+
+* 拉普拉斯核
+
+$$
+K( \mathbf{x},\mathbf{z})  =exp(-\frac{\| \mathbf{x}- \mathbf{z}\|}{\sigma})
+$$
+
+* 字符串核
+
+##### 问题形式
+
+$$
+\begin{aligned}
+\min\ & \frac{1}{2}\Sigma_{i=1}^{N}\Sigma_{j=1}^N\alpha_i\alpha_jy_iy_jK(\mathbf{x_i},\mathbf{x}_j) -\Sigma_{i=1}^N\alpha_i\\\
+s.t. \ &\Sigma_{i=1}^N\alpha_iy_i = 0,\\ 
+&0 \leq \alpha_i \leq C,i=1,\cdots,N
+\end{aligned}
+$$
+
+#### 支持向量机的求解——SMO算法
+
+优化时固定其他变量不变，每次只优化两个变量，使问题变成两变量的二次优化问题，直到求得的解在误差范围内满足KKT条件。
 
 #### 分类问题的方法选取
 
@@ -621,4 +741,6 @@ $$
 ##### 对数障碍法
 
 ##### 原对偶内点法
+
+## 通信原理及通信信号处理篇
 
