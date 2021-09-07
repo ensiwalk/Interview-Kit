@@ -829,3 +829,199 @@ $$
 
 ## 通信原理及通信信号处理篇
 
+### 0. 信息论、信道容量
+
+#### 香农定理
+
+对一个码本$\mathcal{C}$，共有$|\mathcal{C}|$ 个码字，每个码字的长度为$N$，$\mathcal{C}=\{\mathbf{x}_1,\cdots,\mathbf{x}_{|\mathcal{C}|}\}$​, 信道可以定义为$P(\mathbf{y}|\mathbf{x})$
+
+发送第$i$ 个码字，检测结果为$\hat{i}$，误码率为$p_e=Pr(i\neq \hat{i})$，定义速率为$R = \frac{1}{N}log|\mathcal{C}|$ 
+
+香农定理：当R小于信道容量C时，误码率可以任意小，编码方式选择卷积码，Turbo码，LDPC码
+
+#### 信道容量
+
+* 信息熵：$H(X)=-\Sigma P(x)logP(x)$
+* 联合熵：$H(X,Y) = -\Sigma \Sigma P(x,y)logP(x,y)$
+* 条件熵：$H(X|Y) = -\Sigma \Sigma P(x,y)logP(x|y)$​
+* 链式法则：$H(X,Y)=H(Y)+H(X|Y)$
+* 互信息：发送$X$，接收$Y$，$I(X;Y) = H(X)-H(X|Y) = \Sigma \Sigma P(x,y)log\frac{P(x,y)}{P(x)P(y)}$, 表示通过接收信号消除的不确定性
+* 离散信道容量：$C=max I(X;Y)$ ，该优化问题的结果与输入$X$​ 的分布有关，对称信道的速率在离散信源等概率时达到最大为$C = log_2|X|-H(\mathbf{p})$
+* 微分熵：人为定义的结果，没有信息的不确定性度量的功能，$h(x) = \int_{-\infty}^{\infty}f(x)logf(x)dx$​,对于有限分布，均匀分布的微分熵最大，对于无限分布，高斯分布的微分熵最大，微分熵本身没有实际意义，但是微分熵的差可以定义为互信息
+* 受输入功率限制的离散时间AWGN信道的容量：
+
+$$
+Y_i = X_i + N_i
+$$
+
+可以用大数定律得到，输出矢量$\mathbf{y}$ 落在了以$\mathbf{x}$ 为中心，$\sqrt{n(P+\sigma^2)}$ 的$n$​​ 维球内，得出容量为
+$$
+R = \frac{1}{2}log_2(1+\frac{P}{\sigma^2})
+$$
+注意该信号为实信号，如果采用复信号，还需×2
+
+* 带限信道的信道容量，对于一个带宽受限于$W$ 的信道，可以等效于发射波特率为$2W$​的AWGN信道，输入功率限制为$P/2W$，噪声功率为$N_0/2$​，因此连续时间信道容量为
+  $$
+  C = 2W*\frac{1}{2}log_2(1+\frac{P/2W}{N_0/2})=Wlog_2(\frac{P}{WN_0})
+  $$
+  当$W\to \infty$时，$C=1.44\frac{P}{N_0}$
+
+* 确定性MIMO系统的信道容量：$\mathbf{y}=\mathbf{Hx+w}$,互信息为$\mathcal{I}=log|\mathbf{I}+\mathbf{H}\mathbf{R}_x\mathbf{H}^H\mathbf{R}_w^{-1}|$,求解优化问题使互信息最大为信道容量，对$\mathbf{H}$​ 做SVD分解，最后可以化为子信道的注水定理优化问题，用KKT求解，当信噪比比较大或者发射端未知信道时，对信号进行等功率分配，信道容量为
+
+$$
+C = \Sigma_{i=1}^rlog_2(1+\frac{P\lambda_i^2}{N_TN_0})
+$$
+
+* 随机MIMO系统的信道容量，采用遍历容量，如果信道是遍历的，则$\bar{C}=E\{C\}$,如果信道不是遍历的，则采用中断容量去描述，$P_{out}(R)=Pr(C(H)<R)$,即传输$R$速率的的数据，不能实现任意小的误码率的临界点
+
+### 1. 无线通信的数字基带传输模型
+
+#### 基带传输模型
+
+一个发射信号，具有如下的形式：
+$$
+s(t) = \Sigma_{n=0}^{\infty}s_ng(t-nT)
+$$
+其中，$s_n$​为调制符号，$g(t)$​为脉冲波形，且是一个带限信号$|f|\leq W$​，同时，信道的频率响应也是带限的，则接收信号：
+$$
+r(t) = \Sigma_{n=0}^{\infty}s_ng(t-nT)*h(t) + z(t)
+$$
+
+
+经过接收端匹配滤波后，
+$$
+x(t) = g^*(-t)*h(t)*g(t)
+$$
+
+$$
+y(t) = \Sigma_{n=0}^{\infty}s_nx(t-nT) + \mu(t)
+$$
+
+<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image16308576623840.png" alt="img" style="zoom:50%;" />
+
+<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image16308576767490.png" alt="img" style="zoom:50%;" />
+
+<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image16308578436960.png" alt="img" style="zoom:50%;" />
+
+以$g(t)$为一个矩形波信号为例，经过接收端的匹配滤波之后，变为一个三角波信号，此时，需要对接收的三角波信号进行定时采样，使其恰好采在三角波的尖上，对应了最大的接收信噪比：
+$$
+y(kT) = \Sigma_{n=0}^{\infty}s_nx(kT-nT) + \mu(kT)
+$$
+则等价于
+$$
+y_k =  \Sigma_{n=0}^{\infty}s_nx_{k-n} + \mu_{k}
+$$
+所以，
+$$
+y_k = s_k + \Sigma_{n=0,n \neq k}^{\infty}s_nx_{k-n} + \mu_k
+$$
+则第一项为希望接收的符号，第二项是信道效应引起的符号间干扰，第三项是噪声,下面进一步分析$x_k$的结构，对于无线信道
+$$
+h(t) = \Sigma_{l=0}^La_le^{-j2\pi f\tau_l}\delta(t-\tau_l)
+$$
+所以
+$$
+x(t_\delta-nT) = g^*(-t)*h(t)*g(t)=\Sigma_{l=0}^La_le^{-j2\pi f\tau_l}\int_0^\infty g(t-nT-\tau_l)g(t+t_\delta)dt
+$$
+
+$$
+\begin{aligned}
+x(kT-nT) = g*(-t)*h(t)*g(t)=&\Sigma_{l=0}^La_le^{-j2\pi f\tau_l}\int_0^\infty g(t-nT-\tau_l)g(t+kT)dt\\
+=&\Sigma_{l=0}^La_le^{-j2\pi f\tau_l}\int_0^\infty g((k-n)T-\tau_l)g(t)dt\\
+=&\Sigma_{l=0}^La_le^{-j2\pi f\tau_l}\int_0^T g((k-n)T-\tau_l)g(t)dt
+\end{aligned}
+$$
+
+即
+$$
+x_{k-n} = \Sigma_{l=0}^La_le^{-j2\pi f\tau_l}\int_0^T g((k-n)T-\tau_l)g(t)dt
+$$
+可以证明，此时$x_k$是一个有限长的序列，长度为$L$​，所以
+$$
+y_k = s_k + \Sigma_{l=0,l \neq k}^{L}s_lx_{k-l} + \mu_k
+$$
+第一项为希望接收的符号，第二项是信道效应引起的符号间干扰，第三项是噪声。注意，以上系统均考虑的是基带系统，发射信号为复信号，信道为复信道，实现方式很简单，IQ调制即可。
+
+#### 无符号间干扰的传输特性
+
+从上述式子可以看出，为了使符号间没有干扰，我们需要保证，在抽样点$k$处有，$x_0=1$,$x_k=0(k\neq0)$​，该条件被称作奈奎斯特第一准则，频域条件是使得总传输特性满足
+$$
+\Sigma_{-\infty}^{\infty}X(f+m/T)=T
+$$
+<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image-20210906190146158.png" alt="image-20210906190146158" style="zoom:50%;" />
+
+满足的情况为理想低通特性和升余弦滚降两种，根据采样定理的搬移特性，对于$|f| \leq W$的总传输特性，传输的波特率最大为$2W$，即码元宽度最小为$1/2T$，但是理想低通特性是非因果且不可实现的，所以要设计升余弦滚降特性，此时最大的波特率为$2W/(1+\alpha)$
+
+<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image-20210906190316899.png" alt="image-20210906190316899" style="zoom:50%;" />
+
+### 2. OFDM
+
+上文讲到，在带宽为$W$ 的情况下，最大的波特率为$2W$​，因此要实现更大的波特率需要更大的带宽，此时如果依然使用单载波系统，信道由多径效应引起的频率选择性衰弱更强了，引起了码间串扰，为了消除码间串扰，需要更复杂的均衡器，一般由FIR滤波器实现，需要的阶数更高，成本更高，不划算且难以实现，OFDM系统是用来解决上述单载波系统码间串扰的一种方法，提高系统的有效性和可靠性。
+
+#### 模拟OFDM
+
+* 正交性原理
+
+对于任意两个函数$S_1(t),S_2(t)$​​，如果$\int_{0}^{T}S_1(t)S_2^*(t)dt=0$​​，则二者在$(0,T)$​​上正交，可以证明，复指数信号$\{e^{j2\pi\frac{kt}{T}}\}_{k=0}^{N-1}$​​是一组正交函数​,有
+$$
+\frac{1}{T}R(k,i)=\Large\{\small \begin{aligned}1,k=i\\0,k\neq i\end{aligned}
+$$
+对一组正交载波的叠加传输有
+$$
+x(t)=a_1sin(wt)+a_2sin(2wt)
+$$
+分离时，由于$sin$函数的正交性，采用做相关的方式进行恢复
+$$
+\begin{aligned}
+\int_{0}^Tx(t)sin(wt)dt=a_1\\
+\int_{0}^Tx(t)sin(2wt)dt=a_2
+\end{aligned}
+$$
+而又有时域相关的结果等效为频域采样，因此可以将对整个频带的关心转化为对采样点上的值的关心。
+
+<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image-20210907004142467.png" alt="image-20210907004142467" style="zoom:50%;" />
+
+相比于FDMA，对频带的利用率更高了，模拟OFDM系统如下：
+
+<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image-20210907011101871.png" alt="image-20210907011101871" style="zoom:50%;" />
+
+假设一个OFDM符号为$T_{sym}$​,则子载波带宽为$\frac{1}{T_{sym}}$​,传输了$N$​个符号，占用带宽$W=\frac{N}{T_{sym}}$​,对带通系统，波特率为$B=\frac{N}{T_{sym}}$​​​,等效的符号时间$T_s=\frac{1}{B}=\frac{T_{sym}}{N}$，所以有$T_{sym}=NT_s$​​的传闻，但这个概念只存在于模拟系统。
+
+上面相当于用一个较宽的OFDM符号，持续周期$T_{sym}$​,实现了$\frac{N}{T_{sym}}$ 的波特率，增加了有效性的同时提高了可靠性，但是还是无法消除OFDM符号间的干扰，消除方式在数字OFDM里解释。
+
+#### 数字OFDM
+
+$X_l[k]$表示第$l$个OFDM符号的第$k$个子载波上的发送符号，则总的OFDM基带信号为
+$$
+x(t)=\Sigma_{l=0}^{\infty}\Sigma_{k=0}^{N-1}X_l[k]e^{j2\pi f_k(t-lT_{sym})}
+$$
+ 
+
+在时刻$t=lT_{sym}+nT_s,T_s=T_{sym}/N,f_k=k/T_{sym}$ 进行采样，有
+$$
+x_l[n]=\Sigma_{k=0}^{N-1}X_l[k]e^{j2\pi kn/N},n=0,\cdots,N-1
+$$
+可以看到，$\{x_l[n]\}_{n=0}^{N-1}$恰好为$\{X_l[k]\}_{k=0}^{N-1}$的N点IDFT，可以用FFT算法快速实现，因此可以采用数字OFDM的方式，$x_l[n]$​为一个OFDM符号。
+
+得到OFDM符号后，还在数字域，要想实现传输，需要将其变到模拟域
+$$
+s(t)=\Sigma_{n=1}^Nx[n]g(t-nT_s)
+$$
+其中，$g(t)$​​为成型脉冲，同理，在接收端，利用DFT，可以把时域信号变回频域信号进行信号检测，数字OFDM系统的组成如下：
+
+<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image-20210907144719486.png" alt="image-20210907144719486" style="zoom:50%;" />
+
+
+
+#### OFDM收发机关键技术
+
+* ISI和ICI的消除
+
+通过前面对模拟OFDM和数字OFDM系统的分析，可以看到，通过OFDM的方式，在同等的波特率下，OFDM的时域符号更长，因此可以一定程度上减轻符号间干扰的问题，但是只要多径依然存在，必然还是会出现符号间干扰，即ISI。
+
+<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image-20210907145249583.png" alt="image-20210907145249583" style="zoom:50%;" />
+
+为了消除ISI，一种直接的想法就是在每个符号之间加入保护间隔，即每个符号之间加入一段空白，但这样会破坏子载波间的正交性，引起载波间干扰(ICI)
+
+### 3. MIMO系统
+
