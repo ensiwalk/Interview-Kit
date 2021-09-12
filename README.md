@@ -995,7 +995,7 @@ $X_l[k]$表示第$l$个OFDM符号的第$k$个子载波上的发送符号，则�
 $$
 x(t)=\Sigma_{l=0}^{\infty}\Sigma_{k=0}^{N-1}X_l[k]e^{j2\pi f_k(t-lT_{sym})}
 $$
- 
+
 
 在时刻$t=lT_{sym}+nT_s,T_s=T_{sym}/N,f_k=k/T_{sym}$ 进行采样，有
 $$
@@ -1007,7 +1007,7 @@ $$
 $$
 s(t)=\Sigma_{n=1}^Nx[n]g(t-nT_s)
 $$
-其中，$g(t)$​​为成型脉冲，同理，在接收端，利用DFT，可以把时域信号变回频域信号进行信号检测，数字OFDM系统的组成如下：
+其中，$g(t)$​​为成型脉冲，最简单的是零阶保持，还可以用sinc函数，升余弦函数等。同理，在接收端，利用DFT，可以把时域信号变回频域信号进行信号检测，数字OFDM系统的组成如下：
 
 <img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image-20210907144719486.png" alt="image-20210907144719486" style="zoom:50%;" />
 
@@ -1015,13 +1015,169 @@ $$
 
 #### OFDM收发机关键技术
 
+IFFT，FFT，加CP，去CP是OFDM系统的核心模块。
+
 * ISI和ICI的消除
 
 通过前面对模拟OFDM和数字OFDM系统的分析，可以看到，通过OFDM的方式，在同等的波特率下，OFDM的时域符号更长，因此可以一定程度上减轻符号间干扰的问题，但是只要多径依然存在，必然还是会出现符号间干扰，即ISI。
 
-<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image-20210907145249583.png" alt="image-20210907145249583" style="zoom:50%;" />
+<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image-20210907145249583.png" alt="image-20210907145249583" style="zoom:30%;" />
 
-为了消除ISI，一种直接的想法就是在每个符号之间加入保护间隔，即每个符号之间加入一段空白，但这样会破坏子载波间的正交性，引起载波间干扰(ICI)
+为了消除ISI，一种直接的想法就是在每个符号之间加入保护间隔，即每个符号之间加入一段空白(ZP)，但这样会破坏子载波间的正交性，引起载波间干扰(ICI)。
 
-### 3. MIMO系统
+<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image-20210907164844697.png" alt="image-20210907164844697" style="zoom:30%;" />
+
+因此，为了同时消除ISI和ICI，要采用循环前缀的方式(CP)，对ISI来说，CP加入了保护间隔，消除了ISI，对ICI来说，CP保持了信号在积分区间上的完整性，消除了ICI。
+
+循环前缀的长度不小于信道的最大时延。
+
+* CP的数学解释
+
+`矩阵论角度`
+
+加入CP之后，等效系统
+$$
+\mathbf{y}=\mathbf{H}\mathbf{x}
+$$
+其中，$\mathbf{H}$​为循环矩阵，循环矩阵可以用一对傅里叶矩阵对角化实现对角化，
+$$
+\mathbf{y'}=\mathbf{FHF}^H\mathbf{x}=\mathbf{\Lambda x'}
+$$
+所以消除了ISI和ICI。
+
+`信号处理角度`
+
+当没有ISI和ICI时，
+$$
+Y[k]=H[k]X[k]
+$$
+而信号在信道传播，对应的是线性卷积，我们经过DFT将信号变到频域后，要想实现$Y[k]=H[k]X[k]$​，需要信号的传播满足圆周卷积，因此要加入CP，并且CP的长度不小于信道的最大时延。
+
+<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image-20210907173458312.png" alt="image-20210907173458312" style="zoom:40%;" />
+
+在第二段信号是最完整的，所以没有ISI也没有ICI，第三段和下一个信号的部分载波混了，引入了ICI
+
+* OFDM符号的功率谱
+
+对于模拟OFDM，可以看作单音信号与宽度为$T_{sym}$​窗函数的乘积，时域相乘等价于频域相卷，窗函数的频谱是过零点带宽$\frac{2}{T_{sym}}$​的sinc函数，sinc函数的带外衰减较慢，导致临道干扰(ACI)，所以可以给OFDM符号加窗限制带外功率辐射，常用窗函数是升余弦滚降窗
+
+* 载波频偏
+
+载波频偏会在时域采样序列上增加`相位旋转因子`,带来ICI
+
+* PAPR
+
+$$
+PAPR=\frac{max|x_k|^2}{E\{|x_k|^2\}}
+$$
+
+模拟OFDM的PAPR过大的理解：多个正弦信号叠加，如果相位一致，瞬时功率会远大于平均功率
+
+数字OFDM的PAPR过大的理解：星座图信号经过IDFT后，很可能会有的功率过大，如果发射星座图全一样，出来频域信号是sinc函数，很明显。
+
+PAPR过大对放大器的线性区要求较高，抑制技术包括：信号预畸变/编码/概率
+
+#### OFDMA
+
+OFDMA分配一组子载波给一个用户，可以在一个频带上将子载波分配给不同用户，获得多用户分集增益，提高频谱效率。
+
+#### OFDM优缺点
+
+* 优点
+
+并行传输、节约频谱、运算优势、信道均衡简单、对抗频率选择性衰落
+
+* 缺点
+
+PAPR、频率偏差敏感
+
+### 3. 信道均衡和信道估计
+
+对于宽带系统，多径效应会引起频率选择性衰落，单载波系统会选择时域信道均衡来减弱多径效应带来的ISI，而OFDM系统通过频域均衡实现，二者最后抽样判决都需要信道估计。
+
+#### 时域信道均衡
+
+设总的传输特性是$h(t)$，则均衡器的特性是$c(t)=h^{-1}(t)$，因此均衡器是信道的反向滤波器，而均衡器一般是有限长的FIR滤波器，不可能实现完美均衡，所以有两种设计思路：迫零和最小均方误差。
+
+`迫零均衡`：使得抽样点处系数为1，其余系数为0
+$$
+\mathbf{c}=\mathbf{H}^{-1}\mathbf{e};\mathbf{H}=Toeplitz(\mathbf{h})
+$$
+迫零均衡的缺点是放大了噪声。
+
+`最小均方误差均衡`: 误差的期望最小化
+$$
+\mathbf{w}=\mathbf{R}_y\mathbf{r}_{xy}=(\mathbf{H}^H\mathbf{H}+\frac{\sigma_n^2}{\sigma_x^2}\mathbf{I})^{-1}\mathbf{h}
+$$
+
+#### 频域信道均衡
+
+OFDM把时域ISI信道转化为频域并行信道，
+$$
+\mathbf{\tilde{y}}=\mathbf{\Lambda \tilde{\mathbf{x}}}, \tilde{y_n}=\tilde{h}_n\tilde{x}_n+\tilde{w}_n
+$$
+所以有
+
+`迫零均衡`：
+$$
+\hat{x}_i=\frac{\tilde{y}_i}{\hat{h}_i}
+$$
+MMSE均衡
+$$
+\hat{x}=\tilde{y}_i\hat{h}^*_i/(\hat{h}_i^2+\sigma_n^2/\sigma_s^2)
+$$
+
+#### OFDM信道估计
+
+OFDM的信道估计分为两步：导频处的信道估计，信道值内插
+
+* 块状导频：适合频率选择性衰落信道，导频符号周期$S_t \leq T_c=\frac{1}{f_{max}}$
+* 梳状导频：适合快衰落信道，导频频率间隔$S_r \leq B_c =  \frac{1}{\tau_{max}}$
+* 格状导频：同时满足上述两点
+
+`LS估计`： $\mathbf{\hat{h}}=\mathbf{X}^{-1}\mathbf{y}$​，放大了噪声，低信噪比时性能差
+
+`MMSE估计`：$\mathbf{\hat{h}}=\mathbf{R}_h(\mathbf{R}_h+\frac{\sigma_z^2}{\sigma_x^2}\mathbf{I})^{-1}\mathbf{Xy}$
+
+信道插值方式包括零阶保持、一阶线性内插、三次样条插值、IFFT插值
+
+### 4. MIMO系统
+
+MIMO系统的优势可以从以下两个方面理解
+
+<img src="C:\Users\Ensiwalk\Documents\GitHub\Interview-Kit\image-20210908004358916.png" alt="image-20210908004358916" style="zoom:33%;" />
+
+为了实现MIMO系统的优势，有两条路径分别是天线分集、空分复用
+
+#### 天线分集
+
+##### EGC/SC/MRC
+
+##### Alamouti-code
+
+##### 空时码的设计准则
+
+#### 空分复用
+
+##### 线性检测
+
+##### SIC检测
+
+##### ML检测
+
+#### 波束赋形
+
+##### ZF
+
+##### MMSE
+
+#### 多用户MIMO
+
+##### 块对角化
+
+##### 脏纸编码
+
+### 5.大规模MIMO
+
+
 
